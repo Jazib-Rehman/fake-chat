@@ -166,7 +166,7 @@ function App() {
 
     function openNewTab() {
         const newWindow = window.open(
-            `http://localhost:3000?onlyVideo=true&src=${encodeURIComponent(src)}`,
+            `https://fake-chat-simm.vercel.app?onlyVideo=true&src=${encodeURIComponent(src)}`,
             'MyWindow',
             'width=500, height=800'
         );
