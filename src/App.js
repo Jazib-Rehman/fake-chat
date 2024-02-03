@@ -34,7 +34,7 @@ function App() {
                 }
             };
 
-            mediaRecorder.onstop = () => {
+            mediaRecorder.onstop = async () => {
                 const blob = new Blob(chunks, { type: 'video/mp4' });
                 const url = URL.createObjectURL(blob);
 
@@ -45,6 +45,7 @@ function App() {
                 document.body.appendChild(a);
                 a.click();
                 URL.revokeObjectURL(url);
+                window.close();
             };
 
             mediaRecorder.start();
@@ -54,22 +55,55 @@ function App() {
             console.error('Error starting recording:', error);
         }
     };
+    async function cropVideo(blobURL, width, height) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Load the video from the Blob URL into a video element
+                const videoElement = document.createElement('video');
+                videoElement.src = blobURL;
 
-    // Define a function to crop the video
-    function cropVideo(videoElement, width, height) {
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(videoElement, 0, 0, width, height);
+                // Wait for the video to load metadata
+                videoElement.addEventListener('loadedmetadata', () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
 
-        // Convert the cropped canvas to a blob
-        return new Promise((resolve) => {
-            canvas.toBlob((blob) => {
-                resolve(blob);
-            }, 'video/mp4');
+                    // Calculate cropping dimensions
+                    const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
+                    const targetWidth = Math.min(videoElement.videoWidth, width);
+                    const targetHeight = targetWidth / aspectRatio;
+
+                    const xOffset = (videoElement.videoWidth - targetWidth) / 2;
+                    const yOffset = (videoElement.videoHeight - targetHeight) / 2;
+
+                    // Draw the cropped video frame onto the canvas
+                    ctx.drawImage(
+                        videoElement,
+                        xOffset, yOffset, targetWidth, targetHeight,
+                        0, 0, width, height
+                    );
+
+                    // Convert the canvas to a Blob with the desired MIME type 'video/mp4'
+                    canvas.toBlob(
+                        (blob) => {
+                            // Manually specify the MIME type as 'video/mp4'
+                            const croppedBlob = new Blob([blob], { type: 'video/mp4' });
+                            // Resolve with the cropped video Blob
+                            resolve(croppedBlob);
+                        },
+                        'video/mp4' // Manually specify the MIME type here
+                    );
+                });
+            } catch (error) {
+                // Handle any errors
+                reject(error);
+            }
         });
     }
+
+
+
 
     // Modify your stopRecording function to include cropping
     const stopRecording = async () => {
