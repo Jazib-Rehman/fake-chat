@@ -10,6 +10,8 @@ function App() {
     const queryParameters = new URLSearchParams(window.location.search)
     const onlyVideo = queryParameters.get("onlyVideo")
     const videoSrc = queryParameters.get("src")
+    const [decadedSrc, setDecadedSrc] = useState("")
+
 
     const [recording, setRecording] = useState(false);
     const [mediaRecorder, setMediaRecorder] = useState(null); // Define mediaRecorder state
@@ -21,8 +23,10 @@ function App() {
         try {
             const mediaStream = await navigator.mediaDevices.getDisplayMedia({
                 video: true,
-                audio: true, // Enable audio capture
+                audio: true, // Enable both video and audio capture
             });
+
+            // Now, `mediaStream` includes both screen and microphone audio
 
             const mediaRecorder = new MediaRecorder(mediaStream);
             const chunks = [];
@@ -53,7 +57,6 @@ function App() {
         } catch (error) {
             console.error('Error starting recording:', error);
         }
-
     };
     const stopRecording = () => {
         if (recorder) {
@@ -89,6 +92,8 @@ function App() {
             setRecorderCout(recorderCount + 1);
             startRecording();
             setSrc(videoSrc)
+            setDecadedSrc(decodeURIComponent(videoSrc))
+
         }
         if (onlyVideo) {
             setPlayVoices(false)
@@ -110,7 +115,7 @@ function App() {
     }, []);
 
     function openNewTab() {
-        const newWindow = window.open(`http://localhost:3000?onlyVideo=true&src=${src}`, 'MyWindow', 'width=500, height=800');
+        const newWindow = window.open(`https://fake-chat-simm.vercel.app?onlyVideo=true&src=${encodeURIComponent(src)}`, 'MyWindow', 'width=500, height=800');
     }
 
     const fetchVoicePromise = (text, gender) => {
@@ -184,9 +189,12 @@ function App() {
         <div className='relative  flex justify-center items-center min-h-screen w-full'>
             <div className='fixed top-0 left-0 w-full z-0'>
                 {
-                    src ? <video className='w-full h-screen object-cover' muted src={src} autoPlay loop>
+                    src ? onlyVideo ? <video className='w-full h-screen object-cover' muted src={decadedSrc} autoPlay loop>
                         Sorry, your browser doesn't support embedded videos.
-                    </video>
+                    </video> :
+                        <video className='w-full h-screen object-cover' muted src={src} autoPlay loop>
+                            Sorry, your browser doesn't support embedded videos.
+                        </video>
                         : null
                 }
             </div>
