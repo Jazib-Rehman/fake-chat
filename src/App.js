@@ -320,7 +320,7 @@ function App() {
                     )}
                     <div>
                         <div className='flex items-center space-x-4 p-2'>
-                            {onlyVideo ?
+                            {onlyVideo && img != "null" ?
                                 <img className='h-16 w-16 rounded-full' src={img} alt='logo' />
                                 :
                                 <img className='h-16 w-16 rounded-full' src='./male.jpg' alt='logo' />
@@ -333,8 +333,8 @@ function App() {
                                 if (i % 2 === 0) {
                                     return (
                                         <div className='p-2 flex items-start' key={i}>
-                                            <img className='h-10 w-10 rounded-full' src='./male.jpg' alt='logo' />
-                                            <div className='inline-block max-w-xs bg-gray-200 rounded-xl p-2'>
+                                            <img className='h-10 w-10 rounded-full' src={img != "null" ? img : './male.jpg'} alt='logo' />
+                                            <div className='inline-block max-w-xs bg-gray-200 rounded-xl p-2 ml-1'>
                                                 <p className='text-md'> {item.text} </p>
                                             </div>
                                         </div>
@@ -345,7 +345,7 @@ function App() {
                                             <div className='inline-block max-w-xs bg-blue-500 rounded-xl text-white p-2'>
                                                 <p className='text-md'>{item.text}</p>
                                             </div>
-                                            <img className='h-10 w-10 rounded-full' src='./male.jpg' alt='logo' />
+                                            {/* <img className='h-10 w-10 rounded-full' src='./male.jpg' alt='logo' /> */}
                                         </div>
                                     );
                                 }
