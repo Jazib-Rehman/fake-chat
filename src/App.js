@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import FeatherIcon from 'feather-icons-react';
 import './App.css';
-import RecordRTC from 'recordrtc';
 
 function App() {
     const [chat, setChat] = useState([]);
@@ -10,13 +9,31 @@ function App() {
     const queryParameters = new URLSearchParams(window.location.search);
     const onlyVideo = queryParameters.get('onlyVideo');
     const videoSrc = queryParameters.get('src');
+    const imgSrc = queryParameters.get('img');
     const [decadedSrc, setDecadedSrc] = useState('');
 
     const [recording, setRecording] = useState(false);
     const [mediaRecorder, setMediaRecorder] = useState(null);
     const [stream, setStream] = useState(null);
     const [recorder, setRecorder] = useState(null);
+    const [img, setImg] = useState(null);
     const videoRef = useRef(null);
+    const [selectedImageBlobUrl, setSelectedImageBlobUrl] = useState(null);
+
+    const handleImageChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const blob = new Blob([e.target.result], { type: file.type });
+                const blobUrl = URL.createObjectURL(blob);
+                setSelectedImageBlobUrl(blobUrl);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+    };
 
     const startRecording = async () => {
         try {
@@ -157,6 +174,7 @@ function App() {
             setRecorderCount(recorderCount + 1);
             startRecording();
             setSrc(videoSrc);
+            setImg(imgSrc)
             setDecadedSrc(decodeURIComponent(videoSrc));
         }
         if (onlyVideo) {
@@ -200,7 +218,7 @@ function App() {
 
     function openNewTab() {
         const newWindow = window.open(
-            `https://fake-chat-simm.vercel.app?onlyVideo=true&src=${encodeURIComponent(src)}`,
+            `https://fake-chat-simm.vercel.app?onlyVideo=true&src=${encodeURIComponent(src)}&img=${selectedImageBlobUrl}`,
             'MyWindow',
             'width=500, height=800'
         );
@@ -302,7 +320,11 @@ function App() {
                     )}
                     <div>
                         <div className='flex items-center space-x-4 p-2'>
-                            <img className='h-16 w-16 rounded-full' src='./male.jpg' alt='logo' />
+                            {onlyVideo ?
+                                <img className='h-16 w-16 rounded-full' src={img} alt='logo' />
+                                :
+                                <img className='h-16 w-16 rounded-full' src='./male.jpg' alt='logo' />
+                            }
                             <span className='font-bold'>Alex</span>
                         </div>
 
@@ -344,9 +366,9 @@ function App() {
                     <div className='flex w-full space-x-3 p-8 h-screen justify-center'>
                         <div className='w-1/3 border rounded bg-white p-4 shadow'>
                             <div>
-                                <button className='bg-pink-600 text-white px-8 rounded shadow mb-2 hover:bg-pink-500' onClick={onStartConversation}>
+                                {/* <button className='bg-pink-600 text-white px-8 rounded shadow mb-2 hover:bg-pink-500' onClick={onStartConversation}>
                                     Play
-                                </button>
+                                </button> */}
                                 <button className='ml-2 bg-red-600 text-white px-8 rounded shadow mb-2 hover:bg-red-500' onClick={openNewTab}>
                                     Record
                                 </button>
@@ -357,11 +379,31 @@ function App() {
                         </div>
                         <div className='w-[500px] border rounded bg-white flex flex-col justify-between p-2 shadow h-[800px]'>
                             <div>
-                                <div className='flex items-center space-x-4 p-2'>
-                                    <img className='h-16 w-16 rounded-full' src='./male.jpg' alt='logo' />
-                                    <span className='font-bold'>Alex</span>
+                                <div className="flex items-center space-x-4 p-2">
+                                    <label htmlFor="imageInput" className="cursor-pointer">
+                                        {selectedImageBlobUrl ? (
+                                            <img
+                                                className="h-16 w-16 rounded-full"
+                                                src={selectedImageBlobUrl}
+                                                alt="Uploaded"
+                                            />
+                                        ) : (
+                                            <img
+                                                className="h-16 w-16 rounded-full"
+                                                src="./male.jpg"
+                                                alt="Default"
+                                            />
+                                        )}
+                                        <input
+                                            type="file"
+                                            id="imageInput"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </label>
+                                    <span className="font-bold">Alex</span>
                                 </div>
-
                                 <section id='chatSection' className='border-t-2 border-gray-200 pt-12 h-[600px] overflow-hidden space-y-4'>
                                     {chat.map((item, i) => {
                                         if (i % 2 === 0) {
